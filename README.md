@@ -1,4 +1,10 @@
-NioEventLoopGroup 的两个实例，分别是 bossGroup 和 workerGroup
+volatile仅仅解决了可见性，不能保证互斥性，多线程并发修改某个变量时仍然产生多线程问题。他适合一个线程写，多个线程读的场景
+jdk的bytebuffer长度固定，只有一个位置指针，flip容易出错
+bytebuf两个位置指针，读用readerindex，写用writerindex，自动扩展长度。不用关心底层的校验。
+unpooleadHeapByteBuf基于堆内存进行内存分配的字节缓冲区。没有对象池技术实现。每次io都会创建一个新的unpooleadHeapByteBuf
+满足性能时候推荐使用。不容易出现内存管理问题。
+
+NioEventLoopGroup 的两个实例，分别是 bossGroup（acceptor） 和 workerGroup（i/o 读写线程池）
 是两个线程池, 它们默认线程数为 CPU 核心数乘以 2，bossGroup 用于接收客户端传过来的请求，接收到请求后将后续操作交由 workerGroup 处理。
 etty 线程模型是典型的 Reactor 模型结构，其中常用的 Reactor 线程模型有三种，分别为：Reactor 单线程模型、Reactor 多线程模型和主从 Reactor 多线程模型。
 
