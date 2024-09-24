@@ -8,6 +8,18 @@ Netty 适用的场景包括：
     实时系统
     基于 TCP 的协议
     基于 HTTP 的协议
+    io.netty.codec.dns
+io.netty.codec.haproxy
+io.netty.codec.http
+io.netty.codec.http2
+io.netty.codec.memcache
+io.netty.codec.mqtt
+io.netty.codec.redis
+io.netty.codec.smtp
+io.netty.codec.socks
+io.netty.codec.stomp
+
+
 
 
 
