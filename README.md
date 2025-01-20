@@ -1,3 +1,6 @@
+当web页面聊天应用时候，用 undertow的websocket方法即可。
+当摄像头发信息到服务端时候可以用netty 。
+
 netty 是java的客户端和服务端网络通信的 应用框架。java 实现的客户端和服务端的时候 用netty来通信。
 在web应用上的使用示例
 WebSocket是一种在单个TCP连接上进行全双工通讯的协议。Netty提供了对WebSocket的支持，可以实现高效的实时通信
