@@ -1,3 +1,12 @@
+Rsocket > websocket
+ RSocket (the application protocol) targets WebSockets, TCP, and Aeron, and is expected to be usable over any transport layer with TCP-like characteristics, such as QUIC.
+
+Perhaps more importantly though, it makes TCP, WebSockets, and Aeron usable without significant effort. For example, use of WebSockets is often appealing, but all it exposes is framing semantics, so using it requires the definition of an application protocol. This is generally overwhelming and requires a lot of effort. TCP doesn’t even provide framing. Thus, most applications end up using HTTP/1.1 and sticking to request/response and missing out on the benefits of interaction models beyond synchronous request/response.
+
+For this reason, RSocket defines application-layer semantics over these network transports to allow choosing them when they are appropriate. Later in this document is a brief comparison with other protocols that were explored while trying to leverage WebSockets and Aeron before determining that a new application protocol was wanted.
+
+
+
 当web页面聊天应用时候，用 undertow的websocket方法即可。
 当摄像头发信息到服务端时候可以用netty 。
 
