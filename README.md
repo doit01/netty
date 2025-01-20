@@ -1,3 +1,60 @@
+netty 是java的客户端和服务端网络通信的 应用框架。java 实现的客户端和服务端的时候 用netty来通信。
+在web应用上的使用示例
+WebSocket是一种在单个TCP连接上进行全双工通讯的协议。Netty提供了对WebSocket的支持，可以实现高效的实时通信
+public class WebSocketServer {
+    public static void main(String[] args) throws Exception {
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        try {
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new HttpServerCodec());
+                        ch.pipeline().addLast(new HttpObjectAggregator(65536));
+                        ch.pipeline().addLast(new WebSocketFrameHandler());
+                    }
+                });
+            ChannelFuture f = b.bind(8080).sync();
+            f.channel().closeFuture().sync();
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+        }
+    }
+}
+ HTTP服务器
+ Netty也可以用来实现高性能的HTTP服务器
+ public class HttpServer {
+    public static void main(String[] args) throws Exception {
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        try {
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new HttpServerCodec());
+                        ch.pipeline().addLast(new HttpObjectAggregator(65536));
+                        ch.pipeline().addLast(new HttpRequestHandler());
+                    }
+                });
+            ChannelFuture f = b.bind(8080).sync();
+            f.channel().closeFuture().sync();
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+        }
+    }
+}
+
+
+
+
 nio中的网络通道是非阻塞Io实现是基于事件驱动的，适用于那些即时通信的服务，相比java socket服务,一个客户端一个连接，或者线程连接池的开销，
 new io使用非阻塞方式处理，可以一个线程处理大量客户端连接请求。nio种定义了一些网络事件，比如读写事件连接事件等，selector选择器会不停的检测所有的客户端连接，有事件发生才会针对每个事件响应处理，这样一个单线程管理多个通道连接，不必为每个连接建立线程，避免多线程的上下文切换开销
 Netty 适用的场景包括：
