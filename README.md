@@ -2,6 +2,7 @@
 当摄像头发信息到服务端时候可以用netty 。
 
 netty 是java的客户端和服务端网络通信的 应用框架。java 实现的客户端和服务端的时候 用netty来通信。
+它简化了 TCP 和 UDP 客户端/服务器系统的编程，支持http ，websocket协议。即创建TCP UDP ,WEBSOCKET 的服务端和客户端
 在web应用上的使用示例
 WebSocket是一种在单个TCP连接上进行全双工通讯的协议。Netty提供了对WebSocket的支持，可以实现高效的实时通信
 public class WebSocketServer {
