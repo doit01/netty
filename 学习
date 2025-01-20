@@ -1,0 +1,1909 @@
+https://blog.csdn.net/xyy1028/article/details/139527648?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-0-139527648-blog-144515749.235^v43^pc_blog_bottom_relevance_base6&spm=1001.2101.3001.4242.1&utm_relevant_index=3
+
+一.Netty 是什么?
+
+    Netty 是一个基于 Java 的异步事件驱动网络应用框架，主要用于构建高性能、高可扩展性的网络服务器和客户端。Netty 提供了丰富的功能和工具集，使得开发网络应用程序变得更加简便和高效。
+
+1.Netty 的优点
+1.高性能:
+
+    异步和事件驱动架构：Netty 使用异步非阻塞 I/O 处理，能够高效地处理大量并发连接，显著提升了性能和吞吐量。
+
+    高效的线程模型：Netty 提供了一个高效的多线程模型，能够更好地利用多核处理器，提高应用程序的性能。
+
+2.可扩展性
+
+    支持多种协议：Netty 支持多种传输协议和应用层协议（如 HTTP、WebSocket、TCP、UDP 等），并且可以轻松扩展和自定义协议。
+
+    模块化设计：Netty 的设计高度模块化，允许开发者灵活地组合和替换组件，以满足特定需求。
+
+3.易用性
+
+    丰富的 API：Netty 提供了丰富且易用的 API，简化了网络编程的复杂性，使开发者能够更快速地构建高性能的网络应用。
+
+    内置编解码器：Netty 提供了多种内置的编解码器，可以轻松处理各种常见的数据格式和协议，减少了开发工作量。
+
+4.稳定性和可靠性
+
+    健壮性：Netty 经过广泛的使用和验证，拥有高稳定性和可靠性，适用于生产环境中的关键应用。
+
+    丰富的错误处理机制：Netty 提供了丰富的错误处理和恢复机制，能够有效地处理网络通信中的各种异常情况。
+
+5.跨平台支持
+
+    基于 Java：Netty 基于 Java 构建，具有良好的跨平台性，可以在任何支持 Java 的操作系统上运行。
+
+6.扩展功能
+
+    流量整形：Netty 支持流量整形功能，允许开发者控制数据传输速率和带宽使用，有助于避免网络拥塞和提升服务质量。
+
+    支持零拷贝：Netty 支持零拷贝技术，能够直接在网络层和应用层之间传输数据，减少了数据拷贝的开销，提高了性能。
+
+这些优点使得 Netty 成为构建高性能、高可扩展性网络应用的理想选择。无论是用于构建高并发服务器、代理服务器、网关，还是自定义协议的实现，Netty 都能提供强大的支持。
+2.典型应用场景
+
+    1. 高并发服务器：用于构建需要处理大量并发连接的服务器，如聊天服务器、游戏服务器等。
+
+    2. 代理服务器和网关：作为中间层，用于代理请求、负载均衡和安全控制。
+
+    3. RPC 框架：用于构建远程过程调用（RPC）系统，提升分布式系统的通信效率。
+
+    4. 自定义协议实现：用于实现自定义的通信协议，例如专用的传输协议或应用层协议。
+
+二. Netty 原理
+
+Netty 是一个高性能的异步事件驱动网络框架，其工作原理可以通过以下几个关键组件和机制来理解：
+1. 事件驱动架构
+
+发生事件，主线程把事件放入事件队列，在另外线程不断循环消费事件列表中的事件，调用事件对应的处理逻辑处理事件。事件驱动方式也被称为消息通知方式，其实是设计模式中观察者模式的思路。
+
+Netty 的事件驱动模型是基于 Reactor 模型的，这是一种用于处理多路复用 I/O 的高效编程模型。核心思想是使用一个或多个 I/O 线程（或事件循环）来处理所有的 I/O 操作。每个 I/O 操作（如连接、读、写等）被封装成一个事件，Reactor 线程负责监听这些事件并将其分派给相应的事件处理器（Handler）。主要包括以下组件：
+
+    1.Reactor（EventLoop）：负责等待并分派事件（如连接、读写事件）到相应的处理器。
+
+    2.Handler（ChannelHandler）：事件处理器，具体处理各种事件（如连接建立、消息读取、消息写入等）。
+
+2. NIO（Non-blocking I/O）
+1.Selector
+
+Selector 是基于 Java NIO（New I/O）的核心组件之一。它用于管理和监控多个通道（Channel）的 I/O 事件（如连接、读、写等）。Selector 允许一个单独的线程同时监控多个通道，以便处理多个并发连接。
+1.1 Selector 的作用:
+
+    1. 多路复用 I/O：Selector 允许一个线程管理多个通道的 I/O 事件，通过多路复用机制，实现高效的资源利用和高并发处理。
+
+    2. 事件监控：Selector 监控通道的各种 I/O 事件，如连接就绪、读就绪、写就绪等。当通道上发生这些事件时，Selector 能够捕获并处理。
+
+    2. 非阻塞操作：Selector 结合非阻塞通道（如 SocketChannel），使得线程不会因等待 I/O 操作而阻塞，从而提高了系统的并发性能。
+
+1.2 工作原理:
+
+    1. 注册通道：通道（如 SocketChannel）必须注册到 Selector 上，以便 Selector 能够监控它的 I/O 事件。
+
+    2. 注册时需要指定感兴趣的事件类型，如 SelectionKey.OP_ACCEPT（连接就绪）、SelectionKey.OP_READ（读就绪）、SelectionKey.OP_WRITE（写就绪）等。
+
+    3. 选择就绪的通道：Selector 使用 select() 方法来检测哪些通道已经就绪。这些方法可以是阻塞的（等待至少一个通道就绪）或非阻塞的（立即返回）。
+
+    4. 一旦检测到就绪的通道，Selector 返回一组 SelectionKey，每个键对应一个就绪的通道和事件类型。
+
+    5. 处理事件：通过遍历 SelectionKey 集合，可以获取就绪的通道，并处理相应的 I/O 事件（如读取数据、接受连接等）。
+
+2.Channel
+
+    在 Netty 中，Channel 是一个抽象层次较高的组件，表示一个到网络套接字、文件、管道等的连接。Channel 提供了网络通信的基本操作，如绑定、连接、读写数据等。提供了统一的 I/O 操作接口和丰富的功能配置。每个 Channel 都绑定到一个 EventLoop，处理该通道的所有 I/O 事件。结合 ChannelPipeline 和 ChannelHandler，Netty 实现了高效的事件驱动 I/O 处理，使开发者能够专注于业务逻辑，实现高性能和高并发的网络应用。
+
+2.1 Channel 的主要类型:
+
+    1. NioSocketChannel：用于基于 NIO 的 TCP/IP 连接。
+
+    2. NioServerSocketChannel：用于基于 NIO 的 TCP/IP 服务器端连接。
+
+    3. NioDatagramChannel：用于基于 NIO 的 UDP 连接。
+
+    4. EmbeddedChannel：用于嵌入式的 Channel 实现，主要用于测试。
+
+2.2 Channel 的生命周期:
+
+    1. 创建：Channel 由 Bootstrap 或 ServerBootstrap 创建。当服务器接受一个新的客户端连接时，会创建一个新的 Channel 实例。
+
+    2. 注册：创建的 Channel 会注册到 EventLoop 中，EventLoop 负责监控 Channel 的 I/O 事件。
+
+    3. 活跃：Channel 被注册并且连接建立后，进入活跃状态，可以进行读写操作。
+
+    4. 非活跃：Channel 关闭或连接断开后，进入非活跃状态。
+
+    5. 注销和销毁：Channel 从 EventLoop 注销，并释放所有资源。
+
+2.3 Channel 的核心功能:
+
+    1. 绑定：将 Channel 绑定到一个本地地址（对于服务器端）。
+
+    2. 连接：连接到远程地址（对于客户端）。
+
+    3. 读写：读写数据。
+
+    4. 关闭：关闭连接。
+
+    5. 配置：配置各种参数，如读写缓冲区大小、超时时间等。
+
+2.4 Channel 的重要方法:
+
+    1. bind(SocketAddress localAddress)：绑定到本地地址。
+
+    2. connect(SocketAddress remoteAddress)：连接到远程地址。
+
+    3. disconnect()：断开连接。
+
+    4. close()：关闭通道。
+
+    5. read()：从通道读取数据。
+
+    6. write(Object msg)：向通道写入数据。
+
+    7. flush()：刷新写入的数据。
+
+3.Buffer
+
+在 Netty 中，Buffer 是用于在 I/O 操作中进行数据读写的缓冲区。Netty 提供了自己的 ByteBuf 类型，它是对 Java NIO 中的 ByteBuffer 的增强和改进，提供了更加灵活和高效的缓冲区实现。
+3.1 Buffer 的作用
+
+    1. 数据传输：Buffer 用于在内存和 I/O 通道之间传输数据，是数据在网络通信中的载体。
+
+    2. 数据存储：Buffer 提供了存储数据的容器，可以在其中读取、写入、扩容和截取数据。
+
+    3. 数据处理：Buffer 可以进行各种数据操作，如复制、填充、翻转、压缩等。
+
+3.2 ByteBuf 的特点
+
+    1. 可扩展性：ByteBuf 支持动态扩容，可以自动进行内存分配和释放，避免了手动管理内存的复杂性。
+
+    2. 零拷贝：ByteBuf 提供了零拷贝的读写操作，可以直接访问底层内存，减少了数据复制的开销。
+
+    3. 内存管理：ByteBuf 支持内存池和直接内存，可以根据实际情况选择合适的内存分配方式，提高了性能和资源利用率。
+
+    4. 灵活性：ByteBuf 提供了多种读写操作方法，并支持多种数据类型的编码和解码，使得数据处理更加灵活和高效。
+
+3.3 ByteBuf 的分类
+
+在 Netty 中，ByteBuf 主要分为两种类型：
+
+    1. Heap ByteBuf：基于堆内存的 ByteBuf，数据存储在 JVM 的堆中。适用于大多数应用场景，具有较好的内存管理和性能表现。
+
+    2. Direct ByteBuf：基于直接内存（off-heap）的 ByteBuf，数据存储在操作系统的堆外内存中。适用于需要避免堆内存垃圾回收影响的场景，如大数据量的网络传输。
+
+3. 线程模型
+
+Netty 的线程模型主要分为以下几类：
+1.EventLoopGroup
+
+EventLoopGroup 是 Netty 中的一个重要组件，用于管理和调度 EventLoop 实例，EventLoopGroup 是一个 EventLoop 的集合，通常用于管理一组 EventLoop。Netty 使用两个主要的 EventLoopGroup：BossGroup 和 WorkerGroup。
+1.1 主要作用：
+
+    1. 管理 EventLoop：EventLoopGroup 管理着一组 EventLoop 实例，每个 EventLoop 对应一个线程，负责处理一组连接的 I/O 事件。
+
+    2. 调度任务：EventLoopGroup 负责将任务提交给 EventLoop 执行，确保任务能够在正确的线程上执行，避免线程间的竞争和同步问题。
+
+    3. 负载均衡：EventLoopGroup 在创建 Channel 时会轮流分配到子 EventLoop 上，实现负载均衡，避免了单个 EventLoop 的过载。
+
+    4. 生命周期管理：EventLoopGroup 负责管理 EventLoop 的生命周期，包括启动、停止、关闭等操作，确保资源的正确释放和管理。
+     
+
+2.BossGroup
+
+BossGroup 是 EventLoopGroup 的一种，负责处理连接建立的事件（accept操作）。在典型的 Netty 服务器端应用中，通常会创建一个 BossGroup 实例，它负责监听并接受客户端的连接请求，将新的连接分配给 WorkerGroup 中的 EventLoop 来进行后续的处理。
+2.1 主要作用：
+
+    1. 接受连接：BossGroup 负责监听服务器端口，并接受客户端的连接请求。
+
+    2. 分配任务：BossGroup 将新连接分配给 WorkerGroup 中的 EventLoop 来进行后续的读写和处理。
+
+3.WorkerGroup
+
+WorkerGroup 是 EventLoopGroup 的一种，用于处理连接的读写（I/O 操作）和后续的业务逻辑处理。通常情况下，一个 Netty 服务器会创建一个 WorkerGroup 实例，它包含了多个 EventLoop，用于并发处理客户端的连接和数据读写操作。
+3.1 主要作用：
+
+    1. 处理连接：WorkerGroup 中的 EventLoop 负责处理已经接受的客户端连接，进行数据的读写操作。
+
+    2. 执行业务逻辑：WorkerGroup 中的 EventLoop 可以执行各种业务逻辑处理，如数据解码、业务计算、数据库访问等。
+
+4.EventLoop
+
+在 Netty 中，EventLoop 是核心组件之一，它负责管理和调度 I/O 操作、执行定时任务和调度普通任务。每个 EventLoop 运行在一个单独的线程中，通常一个 EventLoop 负责处理多个 Channel 的所有 I/O 事件。不断地轮询 I/O 事件，并将这些事件分派给相应的 ChannelHandler 处理器。在 Netty 中，通常不会直接创建 EventLoop，而是通过 EventLoopGroup 来管理多个 EventLoop。
+4.1 主要职责：
+
+    1. I/O 操作：EventLoop 负责处理与其绑定的 Channel 的所有 I/O 操作，如读、写、连接等。
+
+    2. 任务调度：EventLoop 负责调度和执行提交给它的任务，包括普通任务和定时任务。
+
+    3. 事件分发：EventLoop 负责将 I/O 事件分发到对应的 ChannelPipeline，以触发相应的 ChannelHandler 处理。
+
+4.2 主要特性：
+
+    1. 单线程执行：每个 EventLoop 在单个线程中运行，保证了线程安全性，避免了多线程并发访问的复杂性。
+
+    2. 多路复用：EventLoop 使用多路复用技术（如 Selector）来监控多个 Channel，实现高效的 I/O 操作。
+
+    3. 任务队列：EventLoop 内部维护一个任务队列，用于存放待执行的普通任务和定时任务。
+
+4.3 事件循环工作原理：
+
+    1. 选择事件：EventLoop 使用 Selector 选择器来监控所有注册的 Channel 的 I/O 事件。
+
+    2. 处理事件：当有 I/O 事件发生时，EventLoop 将事件分发到相应的 ChannelPipeline 中，由其中的 ChannelHandler 进行处理。
+
+    3. 执行任务：EventLoop 在每次事件循环中，还会检查任务队列中的任务，并执行这些任务。
+
+4.4 EventLoop 的工作流程：
+
+    1. 绑定线程：EventLoop 在启动时绑定到一个特定的线程，这个线程将负责处理所有分配给该 EventLoop 的 I/O 操作和任务。
+
+    2. 注册 Channel：将一个或多个 Channel 注册到 EventLoop 上，EventLoop 将负责处理这些 Channel 的所有 I/O 事件。
+
+    3. 事件循环：EventLoop 进入事件循环，持续检查和处理 I/O 事件、定时任务和普通任务。
+
+    4. 处理 I/O 事件：当有 I/O 事件发生时，EventLoop 将事件分发到相应的 ChannelPipeline 中，由其中的 ChannelHandler 进行处理。
+
+    5. 调度任务：EventLoop 可以调度普通任务和定时任务，确保它们在合适的时间点执行。
+
+4. ChannelPipeline 和 ChannelHandler
+
+Netty 通过 ChannelPipeline 和 ChannelHandler 来组织和处理 I/O 事件：
+1.ChannelPipeline：
+
+它是处理网络事件和数据流的容器。ChannelPipeline 由一系列的 ChannelHandler 组成，负责处理 I/O 事件的不同阶段。这些处理器按顺序处理传入和传出的数据和事件。每个 Channel 都有一个关联的 ChannelPipeline，用来管理和调度 ChannelHandler 的执行。
+1.1 主要作用：
+
+    1. 事件流转：ChannelPipeline 负责管理和流转 I/O 事件，包括读事件、写事件、连接事件等。
+
+    2. 数据处理：通过 ChannelHandler 对数据进行编码、解码、处理业务逻辑等操作。
+
+    3. 顺序处理：事件在 ChannelPipeline 中按照处理器的顺序进行处理，确保事件处理的有序性。
+
+1.2 主要组件：
+
+    1. ChannelHandler：ChannelHandler 是处理 I/O 事件和数据的基本单元，可以分为入站处理器和出站处理器。入站处理器处理从客户端接收到的数据和事件。出站处理器处理发送到客户端的数据和事件。
+
+    2. ChannelInboundHandler：处理入站 I/O 事件，例如读取数据、处理异常、连接事件等。
+
+    3. ChannelOutboundHandler：处理出站 I/O 事件，例如写数据、刷新数据、关闭连接等。
+
+1.3 工作原理：
+
+    1. 事件传播：入站事件从 ChannelPipeline 的头部开始传播，依次经过每个 ChannelInboundHandler。
+
+                          出站事件从 ChannelPipeline 的尾部开始传播，依次经过每个 ChannelOutboundHandler。
+
+    2. 添加处理器：通过 ChannelPipeline.addLast()、addFirst() 或者 addBefore() 等方法，将 ChannelHandler 添加到管道中。
+
+2.ChannelHandler
+
+在 Netty 中，ChannelHandler 是处理 I/O 事件和数据的核心组件。是处理 I/O 事件的实际逻辑所在。每个 Handler 负责处理特定类型的事件（如解码、编码、业务逻辑处理等）。它定义了对数据进行处理和操作的接口，可以根据需要自定义各种处理逻辑。可以有多个 ChannelHandler 组成一个 ChannelPipeline，ChannelHandler 主要分为两类：ChannelInboundHandler（处理入站事件）和 ChannelOutboundHandler（处理出站事件）。
+2.1 主要作用
+
+    1. 处理 I/O 事件：ChannelHandler 可以处理各种 I/O 事件，如读、写、连接、断开等。
+
+    2. 数据处理：对传输的数据进行编码、解码、压缩、解压等处理。
+
+    3. 业务逻辑：实现具体的业务逻辑，如协议处理、消息路由、数据持久化等。
+
+2.2 主要类型
+
+    1. ChannelInboundHandler：处理入站 I/O 事件，如读取数据、处理异常、连接事件等。常用的实现类有 ChannelInboundHandlerAdapter、SimpleChannelInboundHandler 等。
+
+    2. ChannelOutboundHandler：处理出站 I/O 事件，如写数据、刷新数据、关闭连接等。常用的实现类有 ChannelOutboundHandlerAdapter、ChannelDuplexHandler 等。
+
+2.3 核心方法
+ChannelInboundHandler 的核心方法：
+
+    1. channelRegistered：当 Channel 注册到 EventLoop 时调用。
+
+    2. channelUnregistered：当 Channel 从 EventLoop 注销时调用。
+
+    3. channelActive：当 Channel 处于活动状态时（连接已建立）调用。
+
+    4. channelInactive：当 Channel 不活动时（连接已关闭）调用。
+
+    5. channelRead：当有数据读取时调用。
+
+    6. channelReadComplete：当读操作完成时调用。
+
+    7. exceptionCaught：当处理过程中出现异常时调用。
+
+ChannelOutboundHandler 的核心方法：
+
+    1. bind：请求绑定到一个本地地址时调用。
+
+    2. connect：请求连接到远程地址时调用。
+
+    3. disconnect：请求断开连接时调用。
+
+    4. close：请求关闭 Channel 时调用。
+
+    5. read：请求从 Channel 读取更多数据时调用。
+
+    6. write：请求向 Channel 写入数据时调用。
+
+    7. flush：请求刷新写入的数据时调用。
+
+5. 零拷贝技术
+
+Netty 的零拷贝技术是其实现高性能网络通信的重要特性之一。零拷贝（Zero Copy）技术通过减少或避免数据在用户态和内核态之间的复制次数，从而提高数据传输的效率。Netty 使用了多种零拷贝技术来优化网络数据传输。
+
+以下是一些主要的零拷贝技术和其实现方式：
+1. sendfile 系统调用
+
+    1. sendfile 是操作系统提供的一种系统调用，可以在不经过用户空间的情况下直接将文件数据从一个文件描述符复制到另一个文件描述符，从而避免了用户态和内核态之间的多次数据复制。
+
+    2. 在 Netty 中，使用 DefaultFileRegion 来实现文件传输，该类封装了 sendfile 系统调用。
+
+2. FileRegion 接口
+
+    1. FileRegion 接口用于表示文件的一个区域，可以直接将文件的数据发送到 Channel。
+
+    2. 通过 FileRegion，Netty 可以利用操作系统的零拷贝功能，将文件内容直接从文件系统发送到网络中。
+
+3. Direct Buffer
+
+    1. Netty 使用 java.nio.ByteBuffer 的直接缓冲区（Direct Buffer）来进行 I/O 操作。直接缓冲区是分配在操作系统的本地内存中，避免了在 JVM 堆内存和操作系统内存之间的数据复制。
+
+    2. 直接缓冲区适用于频繁进行 I/O 操作的数据，因为数据可以直接在操作系统和硬件之间传输，而无需经过 JVM 堆内存。
+
+4. 复合缓冲区（Composite Buffer）
+
+    1. Netty 提供了 CompositeByteBuf，它允许将多个 ByteBuf 合并成一个逻辑上的 ByteBuf，而无需实际地复制数据。
+
+    2. 这种方式可以避免数据在内存中的重复复制，提高了数据操作的效率。
+
+三. Netty 工作流程
+
+以下是一个简单的 Netty 工作流程示例：
+
+    1. 启动服务器：使用 ServerBootstrap 类配置和启动服务器，绑定端口并启动 BossGroup 和 WorkerGroup。
+
+    2. 接收连接：BossGroup 的 EventLoop 监听新的连接请求，当有新的连接到来时，创建一个新的 Channel，并将其注册到 WorkerGroup 的 EventLoop 中。
+
+    3. 处理事件：WorkerGroup 的 EventLoop 负责监听注册在其上的 Channel 的 I/O 事件（如读、写、连接等）。当有事件发生时，EventLoop 将事件分派给 ChannelPipeline。
+
+    4. 事件传播：ChannelPipeline 将事件按顺序传递给各个 ChannelHandler 进行处理，例如解码、业务逻辑处理、编码等。
+
+    5. 响应客户端：处理完成后，通过 Channel 将响应数据写回客户端。
+
+四. Netty 搭建 http 服务器
+
+引入jar包:
+
+    <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.1.66.Final</version>
+    </dependency>
+
+HttpRequestHandler 是一个自定义的类，通常用于处理 HTTP 请求。在 Netty 网络框架中，它继承自 SimpleChannelInboundHandler 类，专门用于处理 FullHttpRequest 类型的入站数据。
+
+以下是该类的特定和用途：
+
+    1. 处理 HTTP 请求：HttpRequestHandler 通过重写 channelRead0 方法来接收和处理 HTTP 请求。
+
+    2. 基于 Netty：它使用了 Netty 的事件驱动和异步处理机制，能够有效地处理并发连接。
+
+    3. 灵活的请求处理：可以根据不同的 URL、HTTP 方法或其他条件来定制请求的处理逻辑。
+
+    4. 编解码处理：通常在 HttpRequestHandler 使用之前，HTTP 请求已经被添加到 ChannelPipeline 中的编解码器（如 HttpServerCodec）解析。
+
+    5. 聚合 HTTP 消息：通过使用 HttpObjectAggregator，HttpRequestHandler 可以将多个小块的 HTTP 消息（例如，请求头和请求体）聚合成一个完整的 FullHttpRequest 对象。
+
+    6. 支持 100-continue：可以处理 HTTP 的 Expect: 100-continue 行为，通过添加 HttpServerExpectContinueHandler 到 ChannelPipeline。
+
+    7. 自定义响应：可以根据接收到的请求生成自定义的响应，例如，返回特定的状态码、响应头和响应体。
+
+    8. 路由功能：实现路由功能，将不同的请求路径映射到不同的处理函数。
+
+    import io.netty.channel.ChannelFutureListener;
+    import io.netty.channel.ChannelHandlerContext;
+    import io.netty.channel.SimpleChannelInboundHandler;
+    import io.netty.handler.codec.http.*;
+    import io.netty.util.CharsetUtil;
+     
+    import java.util.HashMap;
+    import java.util.Map;
+    import java.util.function.BiFunction;
+     
+    /**
+     * 处理 HTTP 请求的简单路由器示例
+     * @author HY
+     * @Desc HttpRequestHandler 类继承自 Netty 的 SimpleChannelInboundHandler，
+     *              专门用于处理 FullHttpRequest 类型的入站数据。
+     */
+    class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+     
+        /**
+         * 定义一个路由 Map，它将 HTTP 请求的路径映射到一个处理函数，
+         * 这个处理函数是一个接受 FullHttpRequest 和 ChannelHandlerContext 并返回 FullHttpResponse 的 BiFunction。
+         */
+        private static final Map<String, BiFunction<FullHttpRequest, ChannelHandlerContext, FullHttpResponse>> routes = new HashMap<>();
+     
+        // 初始化路由 Map，将特定的路径 "/get" 和 "/post" 与对应的处理函数关联起来。
+        static {
+            // 将 "/get" 路径映射到 handleGetRequest 方法
+            routes.put("/get", HttpRequestHandler::handleGetRequest);
+            // 将 "/post" 路径映射到 handlePostRequest 方法
+            routes.put("/post", HttpRequestHandler::handlePostRequest);
+            // 可以添加更多的路径和处理函数
+        }
+     
+        /**
+         * channelRead0 方法是 SimpleChannelInboundHandler 的抽象方法实现，
+         * 处理入站的 FullHttpRequest 对象
+         * @param ctx
+         * @param req
+         */
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest req) {
+            // 检查请求是否期望发送 100 Continue 响应，这通常用于 Expect: 100-continue 请求头。
+            if (HttpUtil.is100ContinueExpected(req)) {
+                // 如果需要，发送 100 Continue 响应
+                send100Continue(ctx);
+            }
+     
+            // 检查请求是否需要保持连接活跃（即 Connection 头部不是 close）。
+            boolean keepAlive = HttpUtil.isKeepAlive(req);
+            // 获取请求的 URI。
+            String uri = req.uri();
+            // 从路由 Map 中获取与当前请求 URI 对应的处理函数。
+            BiFunction<FullHttpRequest, ChannelHandlerContext, FullHttpResponse> handler = routes.get(uri);
+     
+            FullHttpResponse response;
+            // 如果找到处理函数，则应用该函数生成响应。
+            if (handler != null) {
+                response = handler.apply(req, ctx);
+            } else {
+                // 如果没有找到处理函数，生成一个 404 Not Found 响应。
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+                response.content().writeBytes("404 Not Found".getBytes(CharsetUtil.UTF_8));
+                // 设置响应头 Content-Type
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+                // 设置响应头 Content-Length。
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+            }
+            // 如果请求需要保持连接活跃，则设置 Connection 头部为 keep-alive。
+            if (keepAlive) {
+                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            }
+     
+            // 写入并刷新响应，即发送数据到客户端。如果请求不是 keep-alive，则添加 CLOSE 监听器来关闭连接
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        }
+     
+        /**
+         * 发送 100 Continue 响应
+         * @param ctx
+         */
+        private void send100Continue(ChannelHandlerContext ctx) {
+            // 写入并刷新 100 Continue 响应
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+            ctx.writeAndFlush(response);
+        }
+     
+        /**
+         * 处理 GET 请求
+         * @param req
+         * @param ctx
+         * @return
+         */
+        private static FullHttpResponse handleGetRequest(FullHttpRequest req, ChannelHandlerContext ctx) {
+            // 定义 GET 请求的响应内容
+            String content = "这是一个 Get 请求";
+            // 创建一个 HTTP 1.1 的 FullHttpResponse 对象，并设置状态码为 OK
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+            // 将响应内容写入响应体
+            response.content().writeBytes(content.getBytes(CharsetUtil.UTF_8));
+            // 设置响应头 Content-Type
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+            // 设置响应头 Content-Length
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+            return response;
+        }
+     
+        /**
+         * 处理 POST 请求
+         * @param req
+         * @param ctx
+         * @return
+         */
+        private static FullHttpResponse handlePostRequest(FullHttpRequest req, ChannelHandlerContext ctx) {
+            // 从请求体中读取 POST 请求的内容
+            String content = req.content().toString(CharsetUtil.UTF_8);
+            // 定义 POST 请求的响应内容
+            String responseContent = "这是一个 post 请求: " + content;
+            // 创建一个 HTTP 1.1 的 FullHttpResponse 对象，并设置状态码为 OK
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+            // 将响应内容写入响应体
+            response.content().writeBytes(responseContent.getBytes(CharsetUtil.UTF_8));
+            // 设置响应头 Content-Type
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+            // 设置响应头 Content-Length
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+            return response;
+        }
+     
+    }
+
+2. HttpServer 启动器
+
+HttpServer 是一个使用 Netty 框架实现的简单的 HTTP 服务器的类。它不是 Netty 库中的一个现成的类，而是通常由开发者自定义创建，用于展示如何使用 Netty 来构建一个处理 HTTP 协议的服务器。
+
+以下是 HttpServer 类的一些关键特点：
+
+    1. 基于 Netty：HttpServer 类使用 Netty 作为底层网络框架，处理所有的网络通信。
+
+    2. HTTP 协议支持：它专门用于处理 HTTP 协议的请求和响应，可以处理 GET、POST、PUT、DELETE 等 HTTP 方法。
+
+    3. 事件驱动：Netty 是基于事件驱动的，因此 HttpServer 能够高效地处理大量并发连接。
+
+    4. 异步处理：Netty 的异步处理能力使得 HttpServer 可以在不阻塞的情况下处理请求。
+
+    5. 可扩展性：开发者可以根据需要添加自定义的 ChannelHandler，来扩展服务器的功能。
+
+    6. 高性能：Netty 以其高性能而闻名，HttpServer 继承了这些性能优势。
+
+    7. 简单易用：通过 Netty 的简化 API，HttpServer 类可以很容易地实现和理解。
+
+    8. 自定义路由：通常 HttpServer 会包含一些路由逻辑，将不同的 URL 路径映射到不同的处理器。
+
+    9. 启动和停止：提供了启动服务器和优雅关闭服务器的方法。
+
+    import io.netty.bootstrap.ServerBootstrap;
+    import io.netty.channel.*;
+    import io.netty.channel.nio.NioEventLoopGroup;
+    import io.netty.channel.socket.SocketChannel;
+    import io.netty.channel.socket.nio.NioServerSocketChannel;
+    import io.netty.handler.codec.http.*;
+     
+    /**
+     * Http 服务启动器
+     * @author HY
+     * @Desc  定义了一个 Http 服务器，使用 Netty 框架的 ServerBootstrap 类来启动。
+     */
+    public class HttpServer {
+     
+        /**
+         * 服务器端口号
+         */
+        private final int port;
+     
+        /**
+         * 在构造函数中初始化端口号
+         * @param port
+         */
+        public HttpServer(int port) {
+            this.port = port;
+        }
+     
+        public void start() throws Exception {
+            // // 创建两个 NioEventLoopGroup 实例，分别用于处理服务器的 Accept 操作和 I/O 操作
+            EventLoopGroup bossGroup = new NioEventLoopGroup();
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
+            try {
+                // 创建 ServerBootstrap 实例
+                ServerBootstrap bootstrap = new ServerBootstrap();
+                // 分配事件循环组
+                bootstrap.group(bossGroup, workerGroup)
+                        // 设置服务器通道的类型
+                        .channel(NioServerSocketChannel.class)
+                        // 创建并设置自定义的 ChannelInitializer
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            /**
+                             * 初始化新创建的子通道
+                             * @param ch
+                             */
+                            @Override
+                            protected void initChannel(SocketChannel ch) {
+                                // 添加 HTTP 服务器编解码器
+                                ch.pipeline().addLast(new HttpServerCodec());
+                                // 添加 HTTP 消息聚合器
+                                ch.pipeline().addLast(new HttpObjectAggregator(65536));
+                                // 添加 HTTP 100-continue 处理器
+                                ch.pipeline().addLast(new HttpServerExpectContinueHandler());
+                                // 添加自定义的 HTTP 请求处理器
+                                ch.pipeline().addLast(new HttpRequestHandler());
+                            }
+                        });
+                // 绑定服务器到指定端口并启动服务器
+                Channel ch = bootstrap.bind(port).sync().channel();
+                System.out.println("Server started at http://127.0.0.1:" + port + '/');
+                // 等待直到服务器 socket 关闭
+                ch.closeFuture().sync();
+            } finally {
+                // 优雅地关闭事件循环组
+                bossGroup.shutdownGracefully();
+                workerGroup.shutdownGracefully();
+            }
+        }
+     
+        public static void main(String[] args) throws Exception {
+            int port = 8080;
+            new HttpServer(port).start();
+        }
+     
+    }
+
+五. Netty 搭建 websocket 服务器
+
+ 引入jar包:
+
+    <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.1.66.Final</version>
+    </dependency>
+
+1. WebSocketServerHandler 处理器
+
+WebSocketServerHandler 是一个自定义的 ChannelHandler 类，用于处理 WebSocket 服务器端的特定逻辑。在 Netty 网络框架中，ChannelHandler 是用于处理或拦截 Channel 事件的核心组件，而 WebSocketServerHandler 专门用于处理 WebSocket 协议相关的事件和数据。
+
+以下是 WebSocketServerHandler 类的一些主要作用：
+
+    1. 处理 WebSocket 握手：它首先检查进入的 HTTP 请求是否为 WebSocket 握手请求。如果是，它将执行握手操作，以便客户端和服务器可以开始使用 WebSocket 协议进行通信。
+
+    2. 管理 WebSocket 帧：处理不同类型的 WebSocket 帧，例如文本帧、二进制帧、关闭帧、ping/pong 控制帧等。
+
+    3. 消息编码与解码：在 WebSocket 握手完成后，WebSocketServerHandler 可以负责将接收到的原始数据转换（解码）为特定的消息格式，以及将应用程序级别的消息转换（编码）为要发送到客户端的格式。
+
+    4. 客户端管理：维护活跃的客户端列表，可以对所有连接的客户端进行广播消息或管理特定的客户端。
+
+    5. 异常处理：捕获和处理在 WebSocket 通信过程中发生的任何异常，例如关闭连接时的处理。
+
+    6. 资源清理：在连接不再需要时，例如客户端断开连接或发生异常时，进行资源的清理和释放。
+
+    7. 自定义逻辑：开发者可以在 WebSocketServerHandler 中实现任何自定义逻辑，例如根据应用需求处理特定的消息或事件。
+
+在 Netty 的 WebSocket 服务器应用程序中，WebSocketServerHandler 通常需要作为 ChannelPipeline 的一部分被添加到每个新的 Channel 中，以确保所有通过该 Channel 的事件和数据都由 WebSocketServerHandler 进行处理。这使得 WebSocket 服务器能够有效地管理多个客户端连接，并提供实时的双向通信。
+
+    import io.netty.buffer.ByteBuf;
+    import io.netty.buffer.Unpooled;
+    import io.netty.channel.*;
+    import io.netty.channel.group.ChannelGroup;
+    import io.netty.channel.group.DefaultChannelGroup;
+    import io.netty.handler.codec.http.*;
+    import io.netty.handler.codec.http.websocketx.*;
+    import io.netty.util.Attribute;
+    import io.netty.util.AttributeKey;
+    import io.netty.util.CharsetUtil;
+    import io.netty.util.concurrent.GlobalEventExecutor;
+     
+    import java.util.Map;
+    import java.util.concurrent.ConcurrentHashMap;
+     
+    import static io.netty.handler.codec.http.HttpResponseStatus.*;
+    import static io.netty.handler.codec.http.HttpVersion.*;
+     
+    /**
+     * WebSocket 处理器
+     * @author HY
+     * @Desc  用于处理 WebSocket 服务器端的特定逻辑。
+     */
+    public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> {
+     
+        /**
+         * 用于存储特定 URI 到 Channel 集合的映射, 每个 URI 对应一个集合
+         */
+        private static final Map<String, ChannelGroup> channelsByUri = new ConcurrentHashMap<>();
+     
+        /**
+         * 用于存储每个 WebSocket 连接的 URI
+         */
+        private static final AttributeKey<String> URI_KEY = AttributeKey.valueOf("uri");
+     
+        /**
+         * 用于执行 WebSocket 握手操作的握手器
+         */
+        private WebSocketServerHandshaker handshaker;
+     
+        /**
+         * 当 ChannelHandler 被添加到 ChannelPipeline 中时，此方法被调用。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @throws Exception
+         */
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+            super.handlerAdded(ctx);
+            // 可以添加一些别的处理
+        }
+     
+     
+        /**
+         * 当 ChannelHandler 从 ChannelPipeline 中移除时，此方法被调用。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @throws Exception
+         */
+        @Override
+        public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+            // 从属性中获取 URI
+            String uri = ctx.channel().attr(URI_KEY).get();
+            if (uri != null) {
+                ChannelGroup channels = channelsByUri.get(uri);
+                if (channels != null) {
+                    // 从 ChannelGroup 中移除当前 Channel
+                    channels.remove(ctx.channel());
+                    // 如果该 URI 的 ChannelGroup 为空，则清理资源
+                    if (channels.isEmpty()) {
+                        channelsByUri.remove(uri);
+                    }
+                }
+            }
+        }
+     
+        /**
+         * 读取数据时调用，根据消息类型分发到不同的处理方法。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @param msg 接收到的消息
+         * @throws Exception
+         */
+        @Override
+        public void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+            if (msg instanceof FullHttpRequest) {
+                // WebSocket 客户端与服务器在第一次连接时，首先会发送一个 HTTP 请求。
+                // 这是 WebSocket 协议的一部分，称为“WebSocket 握手”（WebSocket handshake）。
+                // WebSocket 握手从客户端发送一个带有特定头的 HTTP GET 请求开始。
+                // 这些头部信息告诉服务器客户端希望升级到 WebSocket 协议。
+                // 服务器收到请求后，会检查请求头中的信息，确定是否支持 WebSocket 协议。
+                // 如果支持，服务器会发送一个 HTTP 101 切换协议（Switching Protocols）的响应，
+                // 表示握手成功，并同意升级协议。
+                // 握手成功后，客户端和服务器之间的通信协议从 HTTP 升级为 WebSocket。这时，连接变成全双工的 WebSocket 连接，
+                // 可以双向发送和接收消息。
+                handleHttpRequest(ctx, (FullHttpRequest) msg);
+            } else if (msg instanceof WebSocketFrame) {
+                // 处理 WebSocket 帧
+                handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+            }
+        }
+     
+        /**
+         * 处理 HTTP 请求的方法。WebSocket 客户端与服务器在第一次连接时，首先会发送一个 HTTP 请求。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @param req http请求
+         * @throws Exception
+         */
+        private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+     
+            // 检查请求是否成功解码，以及请求是否为 WebSocket 握手请求
+            if (!req.decoderResult().isSuccess() || (!"websocket".equals(req.headers().get(HttpHeaderNames.UPGRADE)))) {
+                // 如果请求不是 WebSocket 握手请求，发送 400 Bad Request 错误响应
+                sendHttpResponse(ctx, new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST));
+                return;
+            }
+            // 获取请求的 URI
+            String uri = req.uri();
+            // 如果 URI 为 null，则抛出异常
+            if (null == uri){
+                throw new Exception("URI 不能为 null");
+            }
+     
+            // 使用 QueryStringDecoder 对请求的 URI 进行解码
+            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(uri);
+            // 创建 WebSocket 握手处理器工厂
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+                    queryStringDecoder.uri(),  // WebSocket 端点的 URI
+                    "", // 子协议为空
+                    true); // 允许 WebSocket 扩展
+     
+            // 使用工厂尝试创建 WebSocketServerHandshaker 实例
+            handshaker = wsFactory.newHandshaker(req);
+     
+            // 如果握手处理器为 null，表示不支持的 WebSocket 版本
+            if (handshaker == null) {
+                // 发送不支持的版本响应
+                WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+            } else {
+                // 执行握手
+                handshaker.handshake(ctx.channel(), req);
+                // 设置 Channel 的属性，存储 WebSocket 请求的 URI
+                Attribute<String> attr = ctx.channel().attr(URI_KEY);
+                attr.set(queryStringDecoder.uri());
+     
+                // 确保每个 URI 都关联一个 ChannelGroup，用于后续消息广播
+                ChannelGroup existingGroup = channelsByUri.get(uri);
+                if (existingGroup == null) {
+                    // 如果还没有为这个 URI 创建 ChannelGroup，则创建一个新的并加入到映射中
+                    existingGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+                    channelsByUri.put(uri, existingGroup);
+                }
+                // 将当前 Channel 添加到对应的 ChannelGroup
+                existingGroup.add(ctx.channel());
+            }
+        }
+     
+        /**
+         * 处理 WebSocket 帧的方法。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @param frame WebSocketFrame WebSocket 数据帧
+         */
+        private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
+            // 检查 WebSocket 帧类型，并进行相应处理
+            if (frame instanceof CloseWebSocketFrame) {
+                // 如果是关闭帧，关闭连接
+                handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
+                return;
+            } else if (frame instanceof PingWebSocketFrame) {
+                // 如果是 Ping 帧，发送 Pong 帧作为响应
+                ctx.write(new PongWebSocketFrame(frame.content().retain()));
+                return;
+            } else if (frame instanceof TextWebSocketFrame) {
+                // 如果是文本帧，提取文本内容
+                TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
+                String request = textFrame.text();
+                // 获取存储在 Channel 属性中的 URI
+                Attribute<String> attr = ctx.channel().attr(URI_KEY);
+                String uri = attr.get();
+                System.out.println(request);
+                // 广播消息到所有相同 URI 的 Channel
+                if (uri != null) {
+                    broadcast(uri, request, ctx);
+                }
+            }
+        }
+     
+        /**
+         * 广播消息到所有相同 URI 的 Channel。
+         * @param uri 用于定位 ChannelGroup 的 URI
+         * @param message 要广播的消息
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         */
+        private void broadcast(String uri, String message, ChannelHandlerContext ctx) {
+            // 根据 URI 获取对应的 ChannelGroup
+            ChannelGroup channels = channelsByUri.get(uri);
+            if (channels != null) {
+                // 遍历 ChannelGroup 中的所有 Channel
+                for (Channel ch : channels) {
+                    // // 如果 Channel 不是当前发送消息的 Channel，则向该 Channel 发送消息
+                    if (ch != ctx.channel()) {
+                        ch.writeAndFlush(new TextWebSocketFrame(message));
+                    }
+                }
+            }
+        }
+     
+        /**
+         * 发送 HTTP 响应的方法。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @param res
+         */
+        private static void sendHttpResponse(ChannelHandlerContext ctx, DefaultFullHttpResponse res) {
+            // 如果响应的状态码不是 200
+            if (res.status().code() != 200) {
+                // 创建一个字节缓冲区，包含状态码的描述信息
+                ByteBuf buf = Unpooled.copiedBuffer(res.status().toString(), CharsetUtil.UTF_8);
+                // 将字节缓冲区的内容写入响应的 content
+                res.content().writeBytes(buf);
+                // 释放字节缓冲区
+                buf.release();
+                // 设置响应内容的长度
+                HttpUtil.setContentLength(res, res.content().readableBytes());
+            }
+     
+            // 创建一个 ChannelFutureListener 用于处理发送响应后的操作
+            ChannelFutureListener futureListener = future -> {
+                // 如果操作未成功完成
+                if (!future.isSuccess()) {
+                    // 打印异常信息
+                    future.cause().printStackTrace();
+                    // 关闭 Channel
+                    future.channel().close();
+                }
+            };
+            // 将响应写入并刷新 Channel 的 pipeline，然后添加之前创建的监听器
+            ctx.channel().writeAndFlush(res).addListener(futureListener);
+        }
+     
+        /**
+         * 捕获异常的方法，关闭发生异常的 Channel。
+         * @param ctx ChannelHandler 和 Channel 之间的上下文关系
+         * @param cause
+         */
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            // 打印异常信息
+            cause.printStackTrace();
+            // 关闭 Channel
+            ctx.close();
+        }
+    }
+
+2. WebSocketServerInitializer 服务器初始化器
+
+WebSocketServerInitializer 是一个自定义的 ChannelInitializer 类，ChannelInitializer 是 Netty 框架中的一个泛型接口，它用于初始化新创建的 Channel。在 Netty 中，当 ServerBootstrap（用于启动服务器的类）接受一个新的连接时，它会创建一个新的 Channel 实例。ChannelInitializer 允许你在这个新 Channel 的生命周期的早期阶段设置其 ChannelPipeline。
+
+以下是 ChannelInitializer 的主要特点和用途：
+
+    1. 初始化 ChannelPipeline：ChannelInitializer 提供了一个 initChannel 方法，你可以在这个方法中配置 ChannelPipeline，添加需要的 ChannelHandler。
+
+    2. 设置处理器：通过 initChannel 方法，你可以为 Channel 添加多种类型的处理器，例如编解码器、日志记录器、处理器聚合器等。
+
+    3. 配置协议处理：ChannelInitializer 允许你配置用于处理特定协议的逻辑，比如 HTTP、WebSocket 等。
+
+    4. 资源分配：可以在 ChannelInitializer 中分配必要的资源，如内存、线程、文件句柄等，这些资源将在 Channel 生命周期内使用。
+
+    5. 应用特定设置：可以在 ChannelInitializer 中应用针对特定 Channel 的设置，如参数调整、策略应用等。
+
+    import io.netty.channel.ChannelInitializer;
+    import io.netty.channel.socket.SocketChannel;
+    import io.netty.handler.codec.http.HttpObjectAggregator;
+    import io.netty.handler.codec.http.HttpServerCodec;
+    import io.netty.handler.stream.ChunkedWriteHandler;
+     
+    /**
+     * WebSocket 服务器初始化器
+     * @author HY
+     * @Desc  用于初始化新创建的 Channel。
+     */
+    public class WebSocketServerInitializer extends ChannelInitializer<SocketChannel> {
+     
+        /**
+         * initChannel 方法会在新 Channel 创建时被调用
+         * @param ch
+         * @throws Exception
+         */
+        @Override
+        protected void initChannel(SocketChannel ch) throws Exception {
+            // 添加 HttpServerCodec 处理器，用于处理 HTTP 请求和响应
+            ch.pipeline().addLast(new HttpServerCodec());
+            // 添加 HttpObjectAggregator 处理器，聚合 HTTP Fragments 到一个完整的 HTTP 对象
+            ch.pipeline().addLast(new HttpObjectAggregator(65536));
+            // 添加 ChunkedWriteHandler 处理器，用于处理 chunked 传输编码
+            ch.pipeline().addLast(new ChunkedWriteHandler());
+            // 添加 WebSocketServerHandler 处理器，用于处理 WebSocket 帧
+            ch.pipeline().addLast(new WebSocketServerHandler());
+        }
+    }
+
+3.WebSocket 服务启动器
+
+定义了一个 WebSocket 服务器，使用 Netty 框架的 ServerBootstrap 类来启动。
+
+    import io.netty.bootstrap.ServerBootstrap;
+    import io.netty.channel.ChannelFuture;
+    import io.netty.channel.ChannelInitializer;
+    import io.netty.channel.ChannelOption;
+    import io.netty.channel.EventLoopGroup;
+    import io.netty.channel.nio.NioEventLoopGroup;
+    import io.netty.channel.socket.SocketChannel;
+    import io.netty.channel.socket.nio.NioServerSocketChannel;
+     
+    /**
+     * WebSocket 服务启动器
+     * @author HY
+     * @Desc  定义了一个 WebSocket 服务器，使用 Netty 框架的 ServerBootstrap 类来启动。
+     */
+    public class WebSocketServer {
+     
+        /**
+         * 定义服务器端口号
+         */
+        private final int port;
+     
+        /**
+         * 构造函数，初始化端口号
+         * @param port
+         */
+        public WebSocketServer(int port) {
+            this.port = port;
+        }
+     
+        /**
+         * 启动服务器方法
+         * @throws InterruptedException
+         */
+        public void start() throws InterruptedException {
+            // 创建 bossGroup，用于接受新连接
+            EventLoopGroup bossGroup = new NioEventLoopGroup();
+            // 创建 workerGroup，用于处理已接受的连接
+            EventLoopGroup workerGroup = new NioEventLoopGroup();
+            try {
+                // 创建 ServerBootstrap 实例
+                ServerBootstrap bootstrap = new ServerBootstrap();
+                // 设置 bossGroup 和 workerGroup
+                bootstrap.group(bossGroup, workerGroup)
+                        // 设置服务器通道的实现类
+                        .channel(NioServerSocketChannel.class)
+                        // 设置用于初始化新创建的子通道的 ChannelInitializer
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            public void initChannel(SocketChannel ch) throws Exception {
+                                // 添加自定义的 WebSocket 服务器初始化器
+                                ch.pipeline().addLast(new WebSocketServerInitializer());
+                            }
+                        })
+                        //设置服务端接受连接的队列长度
+                        .option(ChannelOption.SO_BACKLOG, 128)
+                        // 设置子通道的 TCP keep-alive 属性
+                        .childOption(ChannelOption.SO_KEEPALIVE, true);
+     
+                // 绑定服务器端口并启动服务器，等待直到绑定完成
+                ChannelFuture future = bootstrap.bind(port).sync();
+     
+                System.out.println("WebSocket 服务器启动, 端口号为: " + port);
+     
+                // 等待直到服务器 socket 关闭
+                future.channel().closeFuture().sync();
+            } finally {
+                // 优雅关闭 workerGroup 和 bossGroup
+                workerGroup.shutdownGracefully();
+                bossGroup.shutdownGracefully();
+            }
+        }
+     
+        public static void main(String[] args) throws InterruptedException {
+            int port = 8080; // Default port
+            new WebSocketServer(port).start();
+        }
+    }
+
+六.Netty搭建 WebSocket 客户端
+1.WebSocketClientHandler处理器
+
+    import io.netty.channel.Channel;
+    import io.netty.channel.ChannelFuture;
+    import io.netty.channel.ChannelHandlerContext;
+    import io.netty.channel.ChannelPromise;
+    import io.netty.channel.SimpleChannelInboundHandler;
+    import io.netty.handler.codec.http.FullHttpResponse;
+    import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
+    import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
+    import io.netty.util.CharsetUtil;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+     
+    /**
+     * 定义一个WebSocket客户端处理器类，继承SimpleChannelInboundHandler类并处理Object类型的消息
+     */
+    public class WebSocketClientHandler extends SimpleChannelInboundHandler<Object> {
+     
+        private static final Logger logger = LoggerFactory.getLogger(WebSocketClientHandler.class);
+     
+        /**
+         * 声明WebSocketClientHandshaker对象，用于处理WebSocket握手
+         */
+        private final WebSocketClientHandshaker handshaker;
+     
+        /**
+         * 声明一个ChannelPromise对象，用于在握手完成时通知其他组件
+         */
+        private ChannelPromise handshakeFuture;
+     
+        /**
+         * 构造函数，初始化handshaker
+         * @param handshaker
+         */
+        public WebSocketClientHandler(WebSocketClientHandshaker handshaker) {
+            this.handshaker = handshaker;
+        }
+     
+        /**
+         * 返回 handshakeFuture 对象
+         * @return
+         */
+        public ChannelFuture handshakeFuture() {
+            return handshakeFuture;
+        }
+     
+     
+        /**
+         * 当处理器被添加到ChannelPipeline中时调用
+         * @param ctx
+         */
+        @Override
+        public void handlerAdded(ChannelHandlerContext ctx) {
+            // 创建一个新的ChannelPromise对象
+            handshakeFuture = ctx.newPromise();
+        }
+     
+     
+        /**
+         * 当 Channel 变为活动状态时调用
+         * @param ctx
+         */
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) {
+            logger.info("Channel active, initiating handshake.");
+            // 发起WebSocket握手
+            handshaker.handshake(ctx.channel());
+        }
+     
+        /**
+         * 当Channel变为非活动状态时调用
+         * @param ctx
+         */
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) {
+            logger.info("Channel inactive.");
+        }
+     
+        /**
+         * 读取Channel中的数据
+         * @param ctx
+         * @param msg
+         * @throws Exception
+         */
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+            // 获取当前的Channel
+            Channel ch = ctx.channel();
+     
+            // 如果握手尚未完成
+            if (!handshaker.isHandshakeComplete()) {
+                handleHandshake(ch, (FullHttpResponse) msg);
+                return;
+            }
+     
+            // 如果收到的是FullHttpResponse，抛出异常
+            if (msg instanceof FullHttpResponse) {
+                handleUnexpectedHttpResponse((FullHttpResponse) msg);
+                return;
+            }
+     
+            // 处理WebSocket帧
+            handleWebSocketFrame(ch, (WebSocketFrame) msg);
+        }
+     
+     
+        /**
+         * 处理握手
+         * @param ch
+         * @param response
+         */
+        private void handleHandshake(Channel ch, FullHttpResponse response) {
+            try {
+                handshaker.finishHandshake(ch, response);
+                logger.info("WebSocket Handshake complete!");
+                handshakeFuture.setSuccess();
+            } catch (WebSocketHandshakeException e) {
+                logger.error("WebSocket handshake failed!", e);
+                handshakeFuture.setFailure(e);
+            }
+        }
+     
+        /**
+         * 处理意外的HTTP响应
+         * @param response
+         */
+        private void handleUnexpectedHttpResponse(FullHttpResponse response) {
+            throw new IllegalStateException("Unexpected FullHttpResponse (status=" + response.status() +
+                    ", content=" + response.content().toString(CharsetUtil.UTF_8) + ")");
+        }
+     
+        /**
+         * 处理WebSocket帧
+         * @param ch
+         * @param frame
+         */
+        private void handleWebSocketFrame(Channel ch, WebSocketFrame frame) {
+            if (frame instanceof TextWebSocketFrame) {
+                logger.info("收到消息: " + ((TextWebSocketFrame) frame).text());
+            } else if (frame instanceof PongWebSocketFrame) {
+                logger.info("收到 PongWebSocketFrame");
+            } else if (frame instanceof CloseWebSocketFrame) {
+                logger.info("收到 CloseWebSocketFrame");
+                ch.close();
+            } else {
+                logger.warn("收到不支持的 WebSocketFrame: " + frame.getClass().getName());
+            }
+        }
+     
+     
+        /**
+         * 当处理过程中出现异常时调用
+         * @param ctx
+         * @param cause
+         */
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            // 记录异常信息
+            logger.error("异常 : ", cause);
+            // 如果握手未完成，设置handshakeFuture为失败状态
+            if (!handshakeFuture.isDone()) {
+                handshakeFuture.setFailure(cause);
+            }
+            // 关闭Channel
+            ctx.close();
+        }
+    }
+
+2.WebSocketClient
+
+    package com.ashen.websocket.websocket.client;
+     
+    import io.netty.bootstrap.Bootstrap;
+    import io.netty.buffer.Unpooled;
+    import io.netty.channel.Channel;
+    import io.netty.channel.ChannelInitializer;
+    import io.netty.channel.ChannelPipeline;
+    import io.netty.channel.EventLoopGroup;
+    import io.netty.channel.nio.NioEventLoopGroup;
+    import io.netty.channel.socket.SocketChannel;
+    import io.netty.channel.socket.nio.NioSocketChannel;
+    import io.netty.handler.codec.http.DefaultHttpHeaders;
+    import io.netty.handler.codec.http.HttpClientCodec;
+    import io.netty.handler.codec.http.HttpObjectAggregator;
+    import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
+    import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+    import io.netty.handler.ssl.SslContext;
+    import io.netty.handler.ssl.SslContextBuilder;
+    import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+     
+    import javax.net.ssl.SSLException;
+    import java.io.BufferedReader;
+    import java.io.InputStreamReader;
+    import java.net.URI;
+     
+    /**
+     * WebSocket客户端示例代码
+     */
+    public final class WebSocketClient {
+        // 创建日志记录器
+        Logger logger = LoggerFactory.getLogger(this.getClass());
+     
+        static final String URL = System.getProperty("url", "ws://localhost:8088/message_transfer/websocket/topic"); // WebSocket URL
+     
+     
+        public static void main(String[] args) throws Exception {
+            // 解析URL
+            URI uri = new URI(URL);
+            // 获取端口
+            int port = getPort(uri);
+     
+            // 创建事件循环组
+            EventLoopGroup group = new NioEventLoopGroup();
+            try {
+                // 创建WebSocket客户端处理器
+                WebSocketClientHandler handler = new WebSocketClientHandler(WebSocketClientHandshakerFactory
+                        .newHandshaker(uri, WebSocketVersion.V13, null, true, new DefaultHttpHeaders()));
+     
+                // 配置Bootstrap
+                Bootstrap bootstrap = new Bootstrap();
+                bootstrap.group(group).channel(NioSocketChannel.class).handler(
+                        new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) {
+                        // 获取管道
+                        ChannelPipeline p = ch.pipeline();
+                        // 如果是wss连接, 则配置 SSL 处理器
+                        if ("wss".equalsIgnoreCase(uri.getScheme())) {
+                            // 配置SSL上下文，用于 wss 链接
+                            final SslContext sslCtx;
+                            try {
+                                sslCtx = SslContextBuilder.forClient()
+                                        .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+                            } catch (SSLException e) {
+                                throw new RuntimeException(e);
+                            }
+                            // 添加 SSL 处理器
+                            p.addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+                        }
+                        // 添加HTTP客户端编解码器和聚合器
+                        p.addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+                    }
+                });
+     
+                // 连接到服务器
+                Channel ch = bootstrap.connect(uri.getHost(), port).sync().channel();
+                // 等待握手完成
+                handler.handshakeFuture().sync();
+     
+                // 读取控制台输入并发送WebSocket消息
+                BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+                while (true) {
+                    // 读取控制台输入
+                    String msg = console.readLine();
+                    if ("再见".equalsIgnoreCase(msg)) {
+                        // 发送关闭帧
+                        ch.writeAndFlush(new CloseWebSocketFrame());
+                        // 等待关闭完成
+                        ch.closeFuture().sync();
+                        break;
+                    } else if ("ping".equalsIgnoreCase(msg)) {
+                        // 发送Ping帧
+                        WebSocketFrame frame = new PingWebSocketFrame(Unpooled.wrappedBuffer(new byte[]{8, 1, 8, 1}));
+                        ch.writeAndFlush(frame);
+                    } else {
+                        // 发送文本帧
+                        WebSocketFrame frame = new TextWebSocketFrame(msg);
+                        ch.writeAndFlush(frame);
+                    }
+                }
+            } finally {
+                // 关闭事件循环组
+                group.shutdownGracefully();
+            }
+        }
+     
+        /**
+         * 解析 url 的端口
+         * @param uri
+         * @return
+         */
+        private static int getPort(URI uri) {
+            int port = uri.getPort();
+            if (port == -1) {
+                // 返回默认端口，wss是443，ws是80
+                return "wss".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
+            }
+            return port; // 返回URI中的端口
+        }
+     
+    }
+
+七. Netty简易WebSocket客户端
+
+采用匿名内部类的形式
+
+    import io.netty.bootstrap.Bootstrap;
+    import io.netty.channel.*;
+    import io.netty.channel.nio.NioEventLoopGroup;
+    import io.netty.channel.socket.SocketChannel;
+    import io.netty.channel.socket.nio.NioSocketChannel;
+    import io.netty.handler.codec.http.DefaultHttpHeaders;
+    import io.netty.handler.codec.http.HttpClientCodec;
+    import io.netty.handler.codec.http.HttpObjectAggregator;
+    import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+    import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
+    import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
+    import io.netty.handler.codec.http.websocketx.WebSocketVersion;
+    import io.netty.handler.logging.LogLevel;
+    import io.netty.handler.logging.LoggingHandler;
+    import io.netty.handler.ssl.SslContext;
+    import io.netty.handler.ssl.SslContextBuilder;
+    import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+    import io.netty.handler.stream.ChunkedWriteHandler;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+     
+    import javax.net.ssl.SSLException;
+    import java.net.URI;
+    import java.util.concurrent.CountDownLatch;
+     
+    /**
+     * 基于Netty快速实现WebSocket客户端，不手动处理握手
+     */
+    public class SimpleWebSocketClient {
+     
+        // 日志记录器
+        static Logger logger = LoggerFactory.getLogger(SimpleWebSocketClient.class);
+     
+        /**
+         * 倒计时锁，用于同步处理
+         */
+        final CountDownLatch latch = new CountDownLatch(1);
+     
+        public static void main(String[] args) throws Exception {
+            // 创建客户端实例并执行测试
+            SimpleWebSocketClient client = new SimpleWebSocketClient();
+            client.test();
+        }
+     
+        public void test() throws Exception {
+            // 获取连接通道
+            Channel dest = dest();
+            // 等待 CountDownLatch 完成
+            latch.await();
+            // 发送 WebSocket 消息
+            dest.writeAndFlush(new TextWebSocketFrame("CountDownLatch完成后发送的消息"));
+        }
+     
+        public Channel dest() throws Exception {
+            // 目标 WebSocket URL
+            URI uri = new URI("wss://localhost:8088/message_transfer/websocket/topic");
+     
+            // 创建事件循环组
+            EventLoopGroup group = new NioEventLoopGroup();
+            // 创建引导程序
+            Bootstrap boot = new Bootstrap();
+            // 定期发送心跳包，以确保连接的有效性。如果在一定时间内没有收到响应，连接将被认为已断开。
+            boot.option(ChannelOption.SO_KEEPALIVE, true)
+                    // 启用TCP的TCP_NODELAY选项，关闭了Nagle算法。
+                    // Nagle算法通过减少发送小数据包的数量来提高网络效率，
+                    // 但会增加一些延迟。启用 TCP_NODELAY 可以减少延迟，对需要快速响应的应用有帮助。
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    // 设置用于处理事件的EventLoopGroup。group是一个EventLoopGroup实例，
+                    // 负责管理通道的I/O操作和事件通知。
+                    .group(group)
+                    // 设置了一个日志处理器 (LoggingHandler)，用于记录所有的事件和操作。日志级别为INFO，
+                    // 因此会记录一般的信息、警告和错误。
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    // 指定了通道类型为NioSocketChannel。这意味着使用NIO（非阻塞 I/O）选择器机制来处理 I/O 操作。
+                    // NioSocketChannel是 Netty 提供的一个具体实现类，适用于客户端通道。
+                    .channel(NioSocketChannel.class)
+                    // 这个方法设置了通道的初始化逻辑。ChannelInitializer是一个特殊的处理器，
+                    // 用于在通道注册到 EventLoop 时配置新的通道。
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel sc) throws Exception {
+                            // 获取管道
+                            ChannelPipeline pipeline = sc.pipeline();
+                            // 如果是wss连接, 则配置 SSL 处理器
+                            if ("wss".equalsIgnoreCase(uri.getScheme())) {
+                                // 配置SSL上下文，用于 wss 链接
+                                final SslContext sslCtx;
+                                try {
+                                    sslCtx = SslContextBuilder.forClient()
+                                            .trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+                                } catch (SSLException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                // 添加 SSL 处理器
+                                pipeline.addLast(sslCtx.newHandler(sc.alloc(), uri.getHost(), uri.getPort()));
+                            }
+                            // 添加HTTP客户端编解码器
+                            pipeline.addLast(new HttpClientCodec());
+                            // 添加分块写处理器
+                            pipeline.addLast(new ChunkedWriteHandler());
+                            // 添加HTTP对象聚合器，聚合消息内容最大为64KB
+                            pipeline.addLast(new HttpObjectAggregator(64 * 1024));
+                            // 添加WebSocket客户端协议处理器
+                            pipeline.addLast(new WebSocketClientProtocolHandler(WebSocketClientHandshakerFactory
+                                    .newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders())));
+                            // 添加自定义的处理器
+                            pipeline.addLast(new SimpleChannelInboundHandler<TextWebSocketFrame>() {
+     
+                                /**
+                                 * 收到消息时被调用
+                                 * @param ctx
+                                 * @param msg
+                                 * @throws Exception
+                                 */
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg)
+                                        throws Exception {
+                                    // 打印收到的消息
+                                    logger.info("收到消息 : {}", msg.text());
+                                }
+     
+                                /**
+                                 * 触发用户事件
+                                 * @param ctx
+                                 * @param evt
+                                 * @throws Exception
+                                 */
+                                @Override
+                                public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                                    // 如果握手完成事件触发
+                                    if (WebSocketClientProtocolHandler.ClientHandshakeStateEvent.HANDSHAKE_COMPLETE
+                                            .equals(evt)) {
+                                        logger.info( "握手完成: {}", ctx.channel().id().toString());
+                                        // 释放 CountDownLatch
+                                        latch.countDown();
+                                        // 发送消息
+                                        send(ctx.channel(), "握手成功");
+                                    }
+                                    super.userEventTriggered(ctx, evt);
+                                }
+                            });
+                        }
+                    });
+     
+            // 连接到服务器并同步
+            ChannelFuture cf = boot.connect(uri.getHost(), getPort(uri)).sync();
+     
+            // 返回连接的通道
+            return cf.channel();
+        }
+     
+     
+     
+        /**
+         * 发送 WebSocket 消息
+         * @param channel Netty 通道对象
+         */
+        public static void send(Channel channel, String message) {
+            if (channel == null) {
+                logger.error("通道为 null，无法发送消息: {}", message);
+                return;
+            }
+     
+            if (!channel.isActive()) {
+                logger.error("通道未处于活跃状态，无法发送消息: {}", message);
+                return;
+            }
+     
+            // 创建一个包含待发送消息的 TextWebSocketFrame 实例
+            TextWebSocketFrame frame = new TextWebSocketFrame(message);
+     
+            // 向通道中写入并发送该帧（消息），并添加一个监听器以处理发送结果
+            channel.writeAndFlush(frame).addListener((ChannelFutureListener) channelFuture -> {
+                // 检查发送操作是否成功
+                if (channelFuture.isSuccess()) {
+                    // 如果发送成功，记录日志
+                    logger.info("消息发送成功: {}", message);
+                } else {
+                    // 如果发送失败，获取失败的原因
+                    Throwable cause = channelFuture.cause();
+                    // 记录发送失败的日志，并打印失败原因的堆栈跟踪信息
+                    logger.error("消息发送失败: {}", message, cause);
+                    cause.printStackTrace();
+                    // 关闭当前通道以避免进一步的错误
+                    closeChannel(channelFuture.channel());
+                }
+            });
+        }
+     
+        /**
+         * 关闭指定的 Netty 通道
+         * @param channel Netty 通道对象
+         */
+        private static void closeChannel(Channel channel) {
+            if (channel != null && channel.isOpen()) {
+                channel.close().addListener((ChannelFutureListener) closeFuture -> {
+                    if (closeFuture.isSuccess()) {
+                        logger.info("通道关闭成功: {}", channel.id());
+                    } else {
+                        logger.error("通道关闭失败: {}", channel.id(), closeFuture.cause());
+                        closeFuture.cause().printStackTrace();
+                    }
+                });
+            }
+        }
+     
+     
+        /**
+         * 获取端口号，如果未指定则根据协议设置默认端口
+         * @param uri
+         * @return
+         */
+        private static int getPort(URI uri) {
+            int port = uri.getPort();
+            if (port == -1) {
+                return "wss".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
+            }
+            return port;
+        }
+    }
+
+八.使用 org.jboss.netty 相关的包
+
+有时候我们引入 Netty 时, 包的前缀是 org.jboss.netty, 这时候我们引入的 jar 包是:
+
+    <dependency>
+    	<groupId>io.netty</groupId>
+    	<artifactId>netty</artifactId>
+    	<version>3.6.5.Final</version>
+    </dependency>
+
+它与我们上个例子中引入的 jar 相比，它们代表同一个项目在不同时期的名称。
+
+Netty 是由 JBoss 社区开发的一个异步事件驱动的网络应用程序框架，用于快速开发可维护的高性能和高可靠性的网络服务器和客户端程序。最初，Netty 在 JBoss 社区下以 org.jboss.netty 作为包名称。随着项目的发展，Netty 从 JBoss 社区中分离出来，并在 2015 年 2 月成立了一个独立的 Netty 项目，由一个独立的团队进行维护。从 4.0 版本开始，Netty 的包名称从 org.jboss.netty 更改为 io.netty，以反映这一变化。
+
+以下是两个包名称的主要区别：
+
+    1. 项目所有权和维护：org.jboss.netty 是早期 JBoss 社区下的 Netty，而 io.netty 是独立后的 Netty 项目。
+
+    2. 版本：org.jboss.netty 通常指的是 Netty 的 3.x 版本。io.netty 从 4.0 版本开始使用，并持续至今。
+
+    3. API 的变化：虽然 Netty 在从 3.x 升级到 4.0 时进行了重构，但大多数核心概念和用法保持了兼容。不过，4.x 版本进行了 API 的清理和改进，一些类和方法的位置或签名可能有所改变。
+
+    4. 社区和生态系统：随着 Netty 社区的成长和扩展，io.netty 拥有了一个更广泛的用户和贡献者基础。
+
+    5. 依赖管理：如果你正在使用 Maven 或 Gradle，你会注意到依赖的 groupId 发生了变化，从 org.jboss.netty 变为 io.netty。
+
+    6. 对于大多数新的项目，推荐使用 io.netty，因为它是 Netty 的当前和活跃版本。如果你维护的是旧项目，可能仍然需要使用 org.jboss.netty。在迁移旧项目时，可能需要对代码进行一些调整以适应新的 API。
+
+我们用该 jar 实现一个简易的 websocket 服务器:
+1. WebSocket 处理器
+
+    import org.jboss.netty.buffer.ChannelBuffers;
+    import org.jboss.netty.channel.*;
+    import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+    import org.jboss.netty.handler.codec.http.HttpHeaders;
+    import org.jboss.netty.handler.codec.http.HttpRequest;
+    import org.jboss.netty.handler.codec.http.HttpResponse;
+    import org.jboss.netty.handler.codec.http.websocketx.*;
+    import org.jboss.netty.logging.InternalLogger;
+    import org.jboss.netty.logging.InternalLoggerFactory;
+    import org.jboss.netty.util.CharsetUtil;
+     
+    import java.util.List;
+    import java.util.concurrent.CopyOnWriteArrayList;
+     
+    import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
+    import static org.jboss.netty.handler.codec.http.HttpMethod.*;
+    import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+    import static org.jboss.netty.handler.codec.http.HttpVersion.*;
+     
+    /**
+     * WebSocket 处理器
+     * @author HY
+     * @Desc  用于处理 WebSocket 服务器端的特定逻辑。
+     */
+    public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
+        private static final InternalLogger logger = InternalLoggerFactory.getInstance(WebSocketServerHandler.class);
+     
+        /**
+         * 使用线程安全的列表来存储客户端连接。
+         */
+        private static final List<Channel> channels = new CopyOnWriteArrayList<>();
+     
+        /**
+         * WebSocket 的路径
+         */
+        private static final String WEBSOCKET_PATH = "/websocket";
+     
+        /**
+         * 用于处理 WebSocket 握手
+         * 用于处理 WebSocket 握手的类。它管理 WebSocket 服务器与客户端之间的握手过程，
+         * 包括协议升级、握手响应的生成与发送、版本兼容性检查等。该类在 WebSocket 服务器端起着关键作用，
+         * 确保客户端和服务器能够成功建立 WebSocket 连接。
+         */
+        private WebSocketServerHandshaker handshaker;
+     
+        /**
+         * 处理接收到的消息，根据消息类型（HttpRequest 或 WebSocketFrame）调用不同的处理方法。
+         * @param ctx 通道处理上下文
+         * @param e 包含消息的事件
+         * @throws Exception
+         */
+        @Override  
+        public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+            // 处理接受消息  
+            Object msg = e.getMessage();
+            if (msg instanceof HttpRequest) {
+                // WebSocket 客户端与服务器在第一次连接时，首先会发送一个 HTTP 请求。
+                // 这是 WebSocket 协议的一部分，称为“WebSocket 握手”（WebSocket handshake）。
+                // WebSocket 握手从客户端发送一个带有特定头的 HTTP GET 请求开始。
+                // 这些头部信息告诉服务器客户端希望升级到 WebSocket 协议。
+                // 服务器收到请求后，会检查请求头中的信息，确定是否支持 WebSocket 协议。
+                // 如果支持，服务器会发送一个 HTTP 101 切换协议（Switching Protocols）的响应，
+                // 表示握手成功，并同意升级协议。
+                // 握手成功后，客户端和服务器之间的通信协议从 HTTP 升级为 WebSocket。这时，连接变成全双工的 WebSocket 连接，
+                // 可以双向发送和接收消息。
+                handleHttpRequest(ctx, (HttpRequest) msg);
+            } else if (msg instanceof WebSocketFrame) {
+                System.out.println("WebSocket 请求");
+                handleWebSocketFrame(ctx, (WebSocketFrame) msg);
+            }
+        }
+     
+        /**
+         * 将异常堆栈跟踪信息打印到控制台，并关闭发生异常的通道。
+         * @param ctx 通道处理上下文
+         * @param e 包含异常的事件
+         * @throws Exception
+         */
+        @Override  
+        public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+            // 处理异常情况  
+            e.getCause().printStackTrace();  
+            e.getChannel().close();  
+        }
+     
+        /**
+         * 当客户端与服务器建立连接时调用。在这里进行初始化操作。
+         * 新的客户端连接时被调用，将客户端的通道（Channel）添加到 channels 列表中。
+         * @param ctx 通道处理上下文
+         * @param e 包含通道状态的事件
+         * @throws Exception
+         */
+        @Override
+        public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+            // 当客户端连接时，将其添加到列表中
+            channels.add(ctx.getChannel());
+        }
+     
+        /**
+         * 当客户端与服务器断开连接时调用。可以在这里进行资源清理等操作。
+         * 在客户端断开连接时被调用，从 channels 列表中移除该客户端的通道。
+         * @param ctx 通道处理上下文
+         * @param e 包含通道状态的事件
+         * @throws Exception
+         */
+        @Override
+        public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+            // 当客户端断开连接时，从列表中移除
+            channels.remove(ctx.getChannel());
+        }
+     
+        /**
+         * 在 WebSocket 握手过程中，客户端首先发送一个 HTTP GET 请求，并在请求头中包含特定的 WebSocket 信息。
+         * 服务器通过响应 HTTP 101 切换协议的响应，表明握手成功，之后连接将升级为 WebSocket 协议。
+         * 完成握手后，客户端和服务器之间的通信将使用 WebSocket 协议进行全双工通信。
+         * @param ctx 通道处理上下文
+         * @param req http 请求
+         * @throws Exception
+         */
+        private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+            // 只接受 HTTP GET 请求
+            if (req.getMethod() != GET) {
+                // 如果请求方法不是 GET，则返回 403 Forbidden 响应。
+                sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+                return;
+            }
+     
+            // 创建 WebSocketServerHandshakerFactory 实例
+            // 该类主要负责生成用于处理不同 WebSocket 版本协议的 WebSocketServerHandshaker 实例，并支持子协议和扩展。
+            WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(  
+                    getWebSocketLocation(req), null, false);
+     
+            // 根据 HTTP 请求创建适当的 WebSocketServerHandshaker 实例。
+            handshaker = wsFactory.newHandshaker(req);
+     
+            if (handshaker == null) {
+                logger.error("不支持的 websocket 协议");
+                // 当客户端请求的 WebSocket 版本不被支持时，发送相应的错误响应。
+                wsFactory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());  
+            } else {
+                // 发送握手响应，执行握手，并添加握手完成后的回调监听器。
+                handshaker.handshake(ctx.getChannel(), req).addListener(
+                        WebSocketServerHandshaker.HANDSHAKE_LISTENER);
+                logger.info("握手成功!");
+            }  
+        }
+     
+        /**
+         * 返回 http 响应
+         * @param ctx
+         * @param req
+         * @param res
+         */
+        private static void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
+            // 如果状态码不是 200，则设置响应内容为状态码信息，并设置内容长度。
+            if (res.getStatus().getCode() != 200) {
+                res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
+                setContentLength(res, res.getContent().readableBytes());
+            }
+     
+            // 将响应写入通道，如果请求不是保持连接或状态码不是 200，则在发送完成后关闭通道。
+            ChannelFuture f = ctx.getChannel().write(res);
+            if (!isKeepAlive(req) || res.getStatus().getCode() != 200) {
+                f.addListener(ChannelFutureListener.CLOSE);
+            }
+        }
+     
+     
+        /**
+         * WebSocket 帧处理
+         * @param ctx
+         * @param frame
+         */
+        private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
+     
+            if (frame instanceof CloseWebSocketFrame) {
+                // 关闭帧（CloseWebSocketFrame）时关闭连接
+                handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
+                return;
+            } else if (frame instanceof PingWebSocketFrame) {
+                // Ping 帧（PingWebSocketFrame）时回复 Pong 帧。
+                ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
+                return;
+            } else if (!(frame instanceof TextWebSocketFrame)) {
+                // 非文本帧时抛出不支持的操作异常。
+                throw new UnsupportedOperationException(String.format("%s frame types not supported",
+                        frame.getClass().getName()));
+            }
+     
+            // 处理接受到的数据（转成大写）并返回
+            String request = ((TextWebSocketFrame) frame).getText();  
+            if (logger.isDebugEnabled()) {  
+                logger.debug(String.format("Channel %s received %s", ctx.getChannel().getId(), request));  
+            }
+     
+            // 传输消息给当前客户端
+    //        ctx.getChannel().write(new TextWebSocketFrame(request.toUpperCase()));
+     
+            // 广播消息给所有客户端
+            broadcastMessage(request.toUpperCase());
+        }
+     
+        /**
+         * 广播消息
+         * @param message
+         */
+        private void broadcastMessage(String message) {
+            TextWebSocketFrame responseFrame = new TextWebSocketFrame(message);
+            for (Channel channel : channels) {
+                if (channel.isConnected()) {
+                    channel.write(responseFrame);
+                }
+            }
+        }
+     
+        /**
+         * 获取 WebSocket 位置
+         * @param req
+         * @return
+         */
+        private static String getWebSocketLocation(HttpRequest req) {
+            // 使用请求头中的主机名和预定义的 WebSocket 路径。
+            return "ws://" + req.getHeader(HttpHeaders.Names.HOST) + WEBSOCKET_PATH;  
+        }  
+    }  
+
+2. WebSocket 服务启动器
+
+    import org.jboss.netty.bootstrap.ServerBootstrap;
+    import org.jboss.netty.channel.ChannelPipeline;
+    import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+    import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+    import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
+    import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+    import java.net.InetSocketAddress;
+    import java.util.concurrent.Executors;
+     
+    import static org.jboss.netty.channel.Channels.pipeline;
+     
+    /**
+     * WebSocket 服务启动器
+     * @author HY
+     */
+    public class WebSocketServer {
+     
+        /**
+         * 服务端口
+         */
+        private final int port;
+      
+        public WebSocketServer(int port) {
+            this.port = port;
+        }
+     
+        /**
+         * WebSocket 启动器
+         */
+        public void run() {
+            // 设置 Socket channel factory
+            // ServerBootstrap 是 Netty 框架中的一个类，主要用于引导和配置服务器端的通道（Channel）。
+            // 它简化了服务器端的设置过程，帮助开发者快速建立和配置网络应用。ServerBootstrap 提供了设置各种参数和属性的方法，
+            // 用于创建和初始化服务器端通道及其相关的管道（Pipeline）。
+            ServerBootstrap bootstrap = new ServerBootstrap(
+                    // 用于创建和管理基于 NIO（非阻塞 I/O）实现的服务器端通道。它负责为服务器通道（ServerChannel）
+                    // 和工作通道（WorkerChannel）提供线程池，并处理 I/O 事件的分发和处理。
+                    new NioServerSocketChannelFactory(
+                            // 使用两个线程池：一个用于接受新连接（boss 线程池），另一个用于处理 I/O 操作（worker 线程池）。
+                            // Boss 线程负责监听和接受客户端连接。
+                            // Worker 线程负责处理已接受连接的读写操作。
+                            Executors.newCachedThreadPool(),
+                            Executors.newCachedThreadPool()));
+      
+            // 设置管道工厂
+            bootstrap.setPipelineFactory(() -> {
+                // 使用 lambda 表达式来实现 ChannelPipelineFactory 接口。
+                // ChannelPipeline 是一组 ChannelHandler 对象的有序列表，这些处理器负责处理入站和出站的数据和事件。
+                ChannelPipeline pipeline = pipeline();
+                // 添加一个名为 decoder 的 HTTP 请求解码器，将字节流解码为 HTTP 请求对象。
+                pipeline.addLast("decoder", new HttpRequestDecoder());
+                // 添加一个名为 aggregator 的 HTTP 块聚合器，聚合 HTTP 消息的分块内容，使其成为完整的 HTTP 消息。
+                // 并限制最大消息大小为 65536（64 KB）
+                pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
+                // 添加名为 encoder 的 HTTP 响应编码器, 将 HTTP 响应对象编码为字节流，便于发送给客户端。
+                pipeline.addLast("encoder", new HttpResponseEncoder());
+                // 添加一个名为 handler 的自定义的处理器，用于处理 WebSocket 连接和消息。
+                //这个处理器将处理所有与 WebSocket 协议相关的操作，例如握手、消息传输等。
+                pipeline.addLast("handler", new WebSocketServerHandler());
+                // 返回配置好的管道
+                return pipeline;
+            });
+     
+            // 服务器绑定到指定的端口，并开始监听传入的连接。
+            bootstrap.bind(new InetSocketAddress(port));
+      
+            // 打印提示信息
+            System.out.println("WebSocket 服务器启动, 端口号为: " + port);
+        }
+      
+        public static void main(String[] args) {
+            int port = 8080;
+            new WebSocketServer(port).run();
+        }
+    }
+
+
+————————————————
+
+                            版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+                        
+原文链接：https://blog.csdn.net/xyy1028/article/details/139527648
