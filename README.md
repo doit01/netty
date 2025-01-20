@@ -1,5 +1,14 @@
 WebSocket本身是依赖tomcat,然而tomcat的并发量不大，连接数低，会导致出现断连的情况，因此对于WebSocket通信要求不高的，可以直接依赖tomcat。但是遇到高并发就难以支撑，这时候，netty该上场了
 
+netty用于
+高并发服务器：用于构建需要处理大量并发连接的服务器，如聊天服务器、游戏服务器等。
+2. 代理服务器和网关：作为中间层，用于代理请求、负载均衡和安全控制。
+3. RPC 框架：用于构建远程过程调用（RPC）系统，提升分布式系统的通信效率。
+4. 自定义协议实现：用于实现自定义的通信协议，例如专用的传输协议或应用层协议。
+
+
+                        
+原文链接：https://blog.csdn.net/xyy1028/article/details/139527648
 Rsocket > websocket
  RSocket (the application protocol) targets WebSockets, TCP, and Aeron, and is expected to be usable over any transport layer with TCP-like characteristics, such as QUIC.
     Netty‌：Netty通过高效的NIO机制实现了高并发处理，适用于需要处理大量并发连接和高数据吞吐量的场景‌23。 应用场景‌：Netty适用于服务器端应用、聊天服务器、游戏服务器等需要高性能网络通信的场景‌3。
